@@ -142,7 +142,7 @@ def add_depth_image(example):
         
         # Ensure task is a string tensor
         task = tf.cast(example['observation']['natural_language_instruction'], tf.string)
-        filename = tf.strings.join(['depth_imgs/', task, "_", idx_str, "_", timestep_str, ".png"])
+        filename = tf.strings.join([task, "_", idx_str, "_", timestep_str, ".png"])
         
         def read_image(filename):
             return tf.convert_to_tensor(np.array(data[filename.numpy().decode('utf-8')]))
@@ -238,6 +238,8 @@ if __name__ == '__main__':
         
         data = pickle.load(f)
     
+    os.system(f'rm {params.pickle_file_path}')
+    
     record_dataset = tf.data.TFRecordDataset(
         os.path.join(
             params.data_dir, 'fractal20220817_data', '0.1.0',
@@ -262,4 +264,3 @@ if __name__ == '__main__':
     write_tfrecord(dataset)
     print(f'Updating feature and info dictionary...')
     save_dataset_info()
-    os.system(f'rm {params.pickle_file_path}') 
