@@ -5,7 +5,8 @@ for job_index in {0..7}
 do
     # Calculate start and end values for the inner loop
     start=$(( (1024 / 8) * job_index ))
-    end=$(( (1024 / 8) * (job_index + 1) ))
+    end=$(( (1024 / 8) * (job_index + 1) -1 ))
+
     echo "Job index: $job_index, start: $start, end: $end"
 
     # Inner loop from start to end
