@@ -1,5 +1,4 @@
 import os
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 from PIL import Image
 import torch
 import numpy as np
@@ -50,6 +49,7 @@ def params():
 if __name__ == '__main__':
     
     params = params()
+    os.system('nvidia-smi')
     DEVICE = f'cuda:{params.device}' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu'
     num_gpus = torch.cuda.device_count()
     print(f'Using {DEVICE} with {num_gpus} GPUs')
@@ -77,7 +77,6 @@ if __name__ == '__main__':
         'vitg': {'encoder': 'vitg', 'features': 384, 'out_channels': [1536, 1536, 1536, 1536]}
     }
     
-    os.system('nvidia-smi')
     if not params.use_metric_depth_model:
         depth_anything = DepthAnythingV2(**model_configs['vitl'])
         depth_anything.load_state_dict(torch.load(f'{params.checkpoint_path}/depth_anything_v2_vitl.pth', map_location='cpu'))
