@@ -110,9 +110,10 @@ if __name__ == '__main__':
                 action_str = np.concatenate([actions[a_type][i].numpy() for a_type in actions
                             if a_type not in ['terminate_episode', 'world_vector']], axis=0).tolist()
                 action_list.append('_'.join([str(a) for a in action_str]))
-
+            
+            images.to(DEVICE)
             with torch.no_grad():
-                depth_images = depth_anything.forward(images.to(DEVICE))
+                depth_images = depth_anything.forward(images)
             
             ts_list = [int(b.numpy()) for b in batch['timestep']]
             
