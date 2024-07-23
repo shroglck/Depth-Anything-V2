@@ -1,3 +1,10 @@
 RUN="bash generate_depth_maps.sh"
 JOB="DepthAnything"
-aries run -j 8 -g 1 -n aries-b03,aries-b04,aries-b05,aries-c01,aries-c02,aries-c03,aries-c04,aries-c05 ag-${JOB} lingzhan/openvla -- bash -c "git clone https://github.com/akshaygopalkr/Depth-Anything-V2.git && cd Depth-Anything-V2 && ${RUN}"
+
+for job_index in {0..7}
+do  
+
+    start=$(( (1024 / 8) * job_index ))
+    end=$(( (1024 / 8) * (job_index + 1) -1 ))
+    aries run -j 1 -g 1 ag-${JOB}-${job_index} lingzhan/openvla -- bash -c "git clone https://github.com/akshaygopalkr/Depth-Anything-V2.git && cd Depth-Anything-V2 && ${RUN}"
+done
