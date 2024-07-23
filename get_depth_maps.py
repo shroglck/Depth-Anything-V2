@@ -1,4 +1,5 @@
 import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 from PIL import Image
 import torch
 import numpy as np
@@ -8,12 +9,12 @@ from metric_depth.depth_anything_v2.dpt import DepthAnythingV2 as MetricDepthAny
 import matplotlib
 from torch.nn import functional as F
 import time
-import tensorflow as tf
-import tensorflow_datasets as tfds
 from torchvision.transforms import Compose
 import pickle
 import argparse
-
+import tensorflow as tf
+tf.config.set_visible_devices([], 'GPU')
+import tensorflow_datasets as tfds
 
 def add_timestep_index(example, index):
     
@@ -39,7 +40,7 @@ def params():
     parser.add_argument('--pickle_file_path', type=str, default='depth_imgs.pkl')
     parser.add_argument('--use-metric-depth-model', action='store_true')
     parser.add_argument('--device', type=str, default='0')
-    parser.add_argument('--batch-size', type=int, default=4)
+    parser.add_argument('--batch-size', type=int, default=32)
     parser.add_argument('--checkpoint-path', type=str, default='checkpoints')
     args = parser.parse_args()
     
@@ -49,7 +50,6 @@ def params():
 if __name__ == '__main__':
     
     params = params()
-    os.system('nvidia-smi')
     DEVICE = f'cuda:{params.device}' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu'
     num_gpus = torch.cuda.device_count()
     print(f'Using {DEVICE} with {num_gpus} GPUs')
@@ -83,9 +83,8 @@ if __name__ == '__main__':
     else:
         depth_anything = MetricDepthAnythingV2(**{**model_configs['vitl'], 'max_depth': 20})
         depth_anything.load_state_dict(torch.load(f'{params.checkpoint_path}/depth_anything_v2_metric_hypersim_vitl.pth', map_location='cpu'))
-    depth_anything = depth_anything.to(DEVICE).eval()
-    os.system('nvidia-smi')
     
+    depth_anything.to(DEVICE).eval()
     cmap = matplotlib.colormaps.get_cmap('Spectral_r')
     
     print(f'Starting to extract depth maps for shard {shard}...')
@@ -101,7 +100,7 @@ if __name__ == '__main__':
         for batch in example['steps'].batch(params.batch_size):
         
             images = batch['observation']['image']
-            images = torch.stack([depth_anything.image2tensor(img.numpy())[0].squeeze(0) for
+            images = torch.stack([depth_anything.image2tensor(img.numpy(), device=DEVICE)[0].squeeze(0) for
                                       img in images], dim=0)
             N = len(batch['observation']['natural_language_instruction'])
             actions = batch['action']
@@ -112,9 +111,6 @@ if __name__ == '__main__':
                             if a_type not in ['terminate_episode', 'world_vector']], axis=0).tolist()
                 action_list.append('_'.join([str(a) for a in action_str]))
             
-            images.to(DEVICE)
-            os.system('nvidia-smi')
-            print(images.shape)
             with torch.no_grad():
                 depth_images = depth_anything.forward(images)
             
