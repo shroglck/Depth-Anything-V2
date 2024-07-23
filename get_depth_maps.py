@@ -11,6 +11,7 @@ from torch.nn import functional as F
 import time
 import tensorflow as tf
 import tensorflow_datasets as tfds
+from torchvision.transforms import Compose
 import pickle
 import argparse
 
@@ -39,7 +40,7 @@ def params():
     parser.add_argument('--pickle_file_path', type=str, default='depth_imgs.pkl')
     parser.add_argument('--use-metric-depth-model', action='store_true')
     parser.add_argument('--device', type=str, default='0')
-    parser.add_argument('--batch-size', type=int, default=32)
+    parser.add_argument('--batch-size', type=int, default=2)
     parser.add_argument('--checkpoint-path', type=str, default='checkpoints')
     args = parser.parse_args()
     
@@ -108,8 +109,8 @@ if __name__ == '__main__':
                             if a_type not in ['terminate_episode', 'world_vector']], axis=0).tolist()
                 action_list.append('_'.join([str(a) for a in action_str]))
 
-            with torch.no_grad():
-                depth_images = depth_anything.forward(images.to(DEVICE))
+            # with torch.no_grad():
+            depth_images = depth_anything.forward(images.to(DEVICE))
             
             ts_list = [int(b.numpy()) for b in batch['timestep']]
             
