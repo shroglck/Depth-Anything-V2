@@ -40,7 +40,7 @@ def params():
     parser.add_argument('--pickle_file_path', type=str, default='depth_imgs.pkl')
     parser.add_argument('--use-metric-depth-model', action='store_true')
     parser.add_argument('--device', type=str, default='0')
-    parser.add_argument('--batch-size', type=int, default=32)
+    parser.add_argument('--batch-size', type=int, default=8)
     parser.add_argument('--checkpoint-path', type=str, default='checkpoints')
     args = parser.parse_args()
     
