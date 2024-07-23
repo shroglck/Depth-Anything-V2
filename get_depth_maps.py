@@ -51,6 +51,8 @@ if __name__ == '__main__':
     
     params = params()
     DEVICE = f'cuda:{params.device}' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu'
+    num_gpus = torch.cuda.device_count()
+    print(f'Using {DEVICE} with {num_gpus} GPUs')
     
     shard = params.data_shard
     split = f'train[{shard}shard]'
