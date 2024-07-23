@@ -1,5 +1,6 @@
-from PIL import Image
 import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+from PIL import Image
 import torch
 import numpy as np
 import cv2
@@ -33,12 +34,12 @@ def params():
     
     parser = argparse.ArgumentParser(description='Save dataset with depth images')
     parser.add_argument('--data-shard', type=int, default=0,
-                        help='Shard of the dataset to save', choices=[i for i in range(1025)])
+                        help='Shard of the dataset to save', choices=[i for i in range(1024)])
     parser.add_argument('--data-dir', type=str, default='/data/shresth/octo-data')
     parser.add_argument('--pickle_file_path', type=str, default='depth_imgs.pkl')
     parser.add_argument('--use-metric-depth-model', action='store_true')
     parser.add_argument('--device', type=str, default='0')
-    parser.add_argument('--batch-size', type=int, default=2)
+    parser.add_argument('--batch-size', type=int, default=32)
     parser.add_argument('--checkpoint-path', type=str, default='checkpoints')
     args = parser.parse_args()
     
@@ -75,15 +76,15 @@ if __name__ == '__main__':
     
     if not params.use_metric_depth_model:
         depth_anything = DepthAnythingV2(**model_configs['vitl'])
-        depth_anything.load_state_dict(torch.load(f'{params.checkpoint_path}/depth_anything_v2_vitl.pth', map_location='cpu'))
+        depth_anything.load_state_dict(torch.load(f'{params.checkpoint_path}/depth_anything_v2_vitl.pth', map_location='cuda'))
     else:
         depth_anything = MetricDepthAnythingV2(**{**model_configs['vitl'], 'max_depth': 20})
-        depth_anything.load_state_dict(torch.load(f'{params.checkpoint_path}/depth_anything_v2_metric_hypersim_vitl.pth', map_location='cpu'))
+        depth_anything.load_state_dict(torch.load(f'{params.checkpoint_path}/depth_anything_v2_metric_hypersim_vitl.pth', map_location='cuda'))
     depth_anything = depth_anything.to(DEVICE).eval()
     
     cmap = matplotlib.colormaps.get_cmap('Spectral_r')
     
-    print('Starting to extract depth maps...')
+    print(f'Starting to extract depth maps for shard {shard}...')
     start_time = time.time()
     
     img_idx = 0
@@ -106,8 +107,9 @@ if __name__ == '__main__':
                 action_str = np.concatenate([actions[a_type][i].numpy() for a_type in actions
                             if a_type not in ['terminate_episode', 'world_vector']], axis=0).tolist()
                 action_list.append('_'.join([str(a) for a in action_str]))
-                
-            depth_images = depth_anything.forward(images.to(DEVICE))
+
+            with torch.no_grad():
+                depth_images = depth_anything.forward(images.to(DEVICE))
             
             ts_list = [int(b.numpy()) for b in batch['timestep']]
             
@@ -125,7 +127,7 @@ if __name__ == '__main__':
                 
                 img_idx += 1
             
-            if img_idx % 1000 == 0:
+            if img_idx % 500 == 0:
                 print(f'Saved {img_idx} images...')
     
     print(f'Saving {img_idx} images to pickle file...')

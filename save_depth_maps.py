@@ -1,7 +1,8 @@
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import tensorflow as tf
 import tensorflow_datasets as tfds
 import numpy as np
-import os
 import json
 import argparse
 import pickle
@@ -246,6 +247,7 @@ if __name__ == '__main__':
         )
     )
     
+    print(f'Saving depth images for shard {shard}...')
     print('Adding depth features to dataset...')
     dataset = add_timestep(dataset)
     dataset = dataset.map(add_depth_image)
