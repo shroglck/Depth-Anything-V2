@@ -62,7 +62,7 @@ if __name__ == '__main__':
     data_dict = {'idx': [idx for idx in range(len(dataset))], 
                  'timestep_length': [len(item['steps']) for item in dataset]}
     data_idx = tf.data.Dataset.from_tensor_slices(data_dict)
-    dataset = tf.data.Dataset.zip((dataset, data_idx))BATCH_SIZE = 2
+    dataset = tf.data.Dataset.zip((dataset, data_idx))
     dataset = dataset.map(add_timestep_index, num_parallel_calls=1)
     images_data = {}
     
@@ -102,7 +102,7 @@ if __name__ == '__main__':
             actions = batch['action']
             
             action_list = []
-            for i in range(N):BATCH_SIZE = 2
+            for i in range(N):
                 action_str = np.concatenate([actions[a_type][i].numpy() for a_type in actions
                             if a_type not in ['terminate_episode', 'world_vector']], axis=0).tolist()
                 action_list.append('_'.join([str(a) for a in action_str]))
