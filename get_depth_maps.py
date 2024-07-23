@@ -127,8 +127,8 @@ if __name__ == '__main__':
                 
                 img_idx += 1
             
-            if img_idx % 500 == 0:
-                print(f'Saved {img_idx} images...')
+                if img_idx % 500 == 0:
+                    print(f'Saved {img_idx} images...')
     
     print(f'Saving {img_idx} images to pickle file...')
     pickle_file = params.pickle_file_path
