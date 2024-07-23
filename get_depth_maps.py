@@ -84,6 +84,7 @@ if __name__ == '__main__':
         depth_anything = MetricDepthAnythingV2(**{**model_configs['vitl'], 'max_depth': 20})
         depth_anything.load_state_dict(torch.load(f'{params.checkpoint_path}/depth_anything_v2_metric_hypersim_vitl.pth', map_location='cpu'))
     depth_anything = depth_anything.to(DEVICE).eval()
+    os.system('nvidia-smi')
     
     cmap = matplotlib.colormaps.get_cmap('Spectral_r')
     
@@ -112,6 +113,8 @@ if __name__ == '__main__':
                 action_list.append('_'.join([str(a) for a in action_str]))
             
             images.to(DEVICE)
+            os.system('nvidia-smi')
+            print(images.shape)
             with torch.no_grad():
                 depth_images = depth_anything.forward(images)
             
