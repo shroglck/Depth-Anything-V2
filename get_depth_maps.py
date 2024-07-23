@@ -123,8 +123,10 @@ if __name__ == '__main__':
                 img_name = f"{task}_{example_idx}_{ts}.png"
                 images_data[img_name] = depth
                 
-                print(f'Saving depth image: {img_name}')
                 img_idx += 1
+            
+            if img_idx % 1000 == 0:
+                print(f'Saved {img_idx} images...')
     
     print(f'Saving {img_idx} images to pickle file...')
     pickle_file = params.pickle_file_path
