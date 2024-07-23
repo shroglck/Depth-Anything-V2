@@ -79,10 +79,10 @@ if __name__ == '__main__':
     
     if not params.use_metric_depth_model:
         depth_anything = DepthAnythingV2(**model_configs['vitl'])
-        depth_anything.load_state_dict(torch.load(f'{params.checkpoint_path}/depth_anything_v2_vitl.pth', map_location='cuda'))
+        depth_anything.load_state_dict(torch.load(f'{params.checkpoint_path}/depth_anything_v2_vitl.pth', map_location='cpu'))
     else:
         depth_anything = MetricDepthAnythingV2(**{**model_configs['vitl'], 'max_depth': 20})
-        depth_anything.load_state_dict(torch.load(f'{params.checkpoint_path}/depth_anything_v2_metric_hypersim_vitl.pth', map_location='cuda'))
+        depth_anything.load_state_dict(torch.load(f'{params.checkpoint_path}/depth_anything_v2_metric_hypersim_vitl.pth', map_location='cpu'))
     depth_anything = depth_anything.to(DEVICE).eval()
     
     cmap = matplotlib.colormaps.get_cmap('Spectral_r')
