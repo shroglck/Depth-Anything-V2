@@ -77,6 +77,7 @@ if __name__ == '__main__':
         'vitg': {'encoder': 'vitg', 'features': 384, 'out_channels': [1536, 1536, 1536, 1536]}
     }
     
+    os.system('nvidia-smi')
     if not params.use_metric_depth_model:
         depth_anything = DepthAnythingV2(**model_configs['vitl'])
         depth_anything.load_state_dict(torch.load(f'{params.checkpoint_path}/depth_anything_v2_vitl.pth', map_location='cpu'))
