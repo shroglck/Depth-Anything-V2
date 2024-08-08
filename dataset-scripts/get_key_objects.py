@@ -11,6 +11,7 @@ import time
 import json
 import os
 POS_PATTERN = r'\((.*?)\)'
+REMOVE_POS_PATTERN = r'\s*\(.*?\)\s*'
 ENDPOINT = "https://zhan-westus-0.openai.azure.com"
 ORGANIZATION = "zhan-westus-0-global"
 IGNORE = {'close', 'near', 'far', 'white', 'blueberry'}
