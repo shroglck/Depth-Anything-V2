@@ -11,7 +11,6 @@ import time
 import json
 import os
 POS_PATTERN = r'\((.*?)\)'
-API_KEY = os.getenv("OPENAPI_KEY")
 ENDPOINT = "https://zhan-westus-0.openai.azure.com"
 ORGANIZATION = "zhan-westus-0-global"
 IGNORE = {'close', 'near', 'far', 'white', 'blueberry'}
@@ -72,6 +71,7 @@ def params():
     parser.add_argument('--data-shard', type=int, default=0,
                         help='Shard of the dataset to save', choices=[i for i in range(1024)])
     parser.add_argument('--data-dir', type=str, default='/data/shresth/octo-data')
+    parser.add_argument('--openai-key', type=str)
     parser.add_argument('--pickle_file_path', type=str, default='key_objects.pkl')
     args = parser.parse_args()
     return args
@@ -96,7 +96,7 @@ if __name__ == '__main__':
     dataset = dataset.map(add_index, num_parallel_calls=1)
     
     client = AzureOpenAI(
-        api_key=API_KEY,
+        api_key=params.openai_key,
         azure_endpoint=ENDPOINT,
         api_version="2023-05-15"
     )
