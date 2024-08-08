@@ -29,6 +29,3 @@ if __name__ == '__main__':
     # Save positional words to a single file
     with open(os.path.join(data_dir, 'fractal20220817_obj_data', '0.1.0', 'pos_vocab.json'), 'w') as f:
         json.dump(list(full_pos_list), f, indent=6)
-        
-        
-        
