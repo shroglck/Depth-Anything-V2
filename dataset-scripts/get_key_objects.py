@@ -12,7 +12,6 @@ import json
 import os
 POS_PATTERN = r'\((.*?)\)'
 REMOVE_POS_PATTERN = r'\s*\(.*?\)\s*'
-API_KEY = 'a210b026e24949e7a1711022f4c1856e'
 ENDPOINT = "https://zhan-westus-0.openai.azure.com"
 ORGANIZATION = "zhan-westus-0-global"
 IGNORE = {'close', 'near', 'far', 'white', 'blueberry'}
