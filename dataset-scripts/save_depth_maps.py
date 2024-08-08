@@ -236,7 +236,6 @@ if __name__ == '__main__':
     dataset = tfds.load('fractal20220817_data', data_dir=params.data_dir,
                         split=split)
     with open(params.pickle_file_path, 'rb') as f:
-        
         data = pickle.load(f)
     
     os.system(f'rm {params.pickle_file_path}')
