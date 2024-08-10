@@ -1,5 +1,6 @@
-RUN="bash generate_key_objects_dataset.sh"
 JOB="rt1-key-objects"
+OPENAPI_KEY=a210b026e24949e7a1711022f4c1856e
+RUN="echo export OPENAPI_KEY=\"${OPENAPI_KEY}\" >> ~/.bashrc && source ~/.bashrc && bash generate_key_objects_dataset.sh" 
 
 for job_index in {0..7}
 do  
