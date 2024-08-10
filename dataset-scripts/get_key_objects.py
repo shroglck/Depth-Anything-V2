@@ -169,6 +169,12 @@ if __name__ == '__main__':
         # Get key objects and position words
         object_list, pos_list = get_object_list(task)
         print(task, object_list, pos_list)
+        
+        # Add key objects to object dictionary
+        object_dict[str(example_idx)] = {
+            'objects': object_list,
+            'positions': pos_list
+        }
     
     # Save pickle file with key objects and positional words
     with open(params.pickle_file_path, 'wb') as f:
