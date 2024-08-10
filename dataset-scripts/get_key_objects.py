@@ -114,6 +114,7 @@ def params():
     parser.add_argument('--data-shard', type=int, default=0,
                         help='Shard of the dataset to save', choices=[i for i in range(1024)])
     parser.add_argument('--data-dir', type=str, default='/data/shresth/octo-data')
+    parser.add_argument('--openai-key', type=str)
     parser.add_argument('--pickle_file_path', type=str, default='key_objects.pkl')
     args = parser.parse_args()
     return args
