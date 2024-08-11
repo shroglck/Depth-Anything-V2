@@ -13,6 +13,7 @@ nlp = spacy.load("en_core_web_sm")
 import nltk
 nltk.download('stopwords')
 nltk.download('punkt_tab')
+nltk.download('wordnet')
 from nltk.stem import WordNetLemmatizer
 from nltk.corpus import stopwords
 from nltk import word_tokenize, sent_tokenize
