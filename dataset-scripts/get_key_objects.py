@@ -21,12 +21,7 @@ lemmatizer = WordNetLemmatizer()
 stop = set(stopwords.words('english') + list(string.punctuation))
 IGNORE = {'place', 'close', 'knock', 'move', 'open'}
 POSITIONAL_WORDS = {'left', 'right', 'top', 'bottom', 'front', 'back', 'middle'}
-UNDEFINED_TASKS = {
-    'pick green can': (['green can'], ['']),
-    'move 7up can near sponge': (['7up can', 'sponge'], ['', '']),
-    'move green can near sponge': (['green can', 'sponge'], ['', '']),
-    '': ([], []),
-}
+from tasks import UNDEFINED_TASKS
 
 undefined_tasks = set()
 
