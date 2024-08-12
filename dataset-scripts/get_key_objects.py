@@ -12,6 +12,8 @@ import spacy
 nlp = spacy.load("en_core_web_sm")
 import nltk
 nltk.download('stopwords')
+nltk.download('punkt_tab')
+nltk.download('wordnet')
 from nltk.stem import WordNetLemmatizer
 from nltk.corpus import stopwords
 from nltk import word_tokenize, sent_tokenize
@@ -19,6 +21,14 @@ lemmatizer = WordNetLemmatizer()
 stop = set(stopwords.words('english') + list(string.punctuation))
 IGNORE = {'place', 'close', 'knock', 'move', 'open'}
 POSITIONAL_WORDS = {'left', 'right', 'top', 'bottom', 'front', 'back', 'middle'}
+UNDEFINED_TASKS = {
+    'pick green can': (['green can'], ['']),
+    'move 7up can near sponge': (['7up can', 'sponge'], ['', '']),
+    'move green can near sponge': (['green can', 'sponge'], ['', '']),
+    '': ([], []),
+}
+
+undefined_tasks = set()
 
 must_contain_alphe = True
 min_term_len = 3
@@ -62,7 +72,9 @@ def noun_phrase_by_sentence(text):
     return np_list
 
 def get_object_list(prompt):
-    
+
+    if prompt in UNDEFINED_TASKS:
+        return UNDEFINED_TASKS[prompt]
     
     object_list = []
     position_list = []
@@ -111,7 +123,7 @@ def add_index(example, index):
 def params():
     
     parser = argparse.ArgumentParser(description='Save dataset with depth images')
-    parser.add_argument('--data-shard', type=int, default=0,
+    parser.add_argument('--data-shard', type=int, default=23,
                         help='Shard of the dataset to save', choices=[i for i in range(1024)])
     parser.add_argument('--data-dir', type=str, default='/data/shresth/octo-data')
     parser.add_argument('--pickle_file_path', type=str, default='key_objects.pkl')
@@ -127,7 +139,6 @@ if __name__ == '__main__':
     
     shard_str_length = 5 - len(str(shard))
     shard_str = '0' * shard_str_length + str(shard)
-    
     dataset = tfds.load('fractal20220817_depth_data', data_dir=params.data_dir,
                         split=split)
     
@@ -142,16 +153,6 @@ if __name__ == '__main__':
     shard_str_length = 5 - len(str(shard))
     shard_str = '0' * shard_str_length + str(shard)
     
-    dataset = tfds.load('fractal20220817_depth_data', data_dir=params.data_dir,
-                        split=split)
-    
-    data_dict = {'idx': [idx for idx in range(len(dataset))],
-                 'timestep_length': [len(item['steps']) for item in dataset]}
-    data_idx = tf.data.Dataset.from_tensor_slices(data_dict)
-    dataset = tf.data.Dataset.zip((dataset, data_idx))
-    dataset = dataset.map(add_index, num_parallel_calls=1)
-    
-    image_batch, object_list, instruction_batch = [], [], []
     object_dict = {}
     
     pos_vocab = set()
