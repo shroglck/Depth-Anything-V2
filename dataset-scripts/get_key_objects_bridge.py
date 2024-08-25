@@ -16,6 +16,7 @@ UNDEFINED_TASKS = {
     'remove the yellow brush in the silver pot': [('yellow brush', ''), ('silver pot', '')],
     'move spoon out of silver pot and placed on the table': [('spoon', ''), ('silver pot', ''), ('table', '')],
     'put lid on pot or pan': [('lid', ''), ('pot', ''), ('pan', '')],
+    'take the green arch on the right and put it on top of the red arch': [('green arch', ''), ('red arch', '')]
 }
 
 task_desc = ("You will be given a sentence which are instructions for a robot to perform a certain task. "
@@ -118,6 +119,10 @@ if __name__ == '__main__':
     for example in dataset:
         
         task = [d['language_instruction'].numpy().decode('utf-8') for d in example['steps'].take(1)][0].lower()
+
+        if task in key_object_dict:
+            print(f'Task: {task} already processed')
+            continue
         
         return_list = get_object_list(task)
         
