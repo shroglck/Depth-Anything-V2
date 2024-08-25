@@ -112,7 +112,7 @@ if __name__ == '__main__':
         azure_endpoint=ENDPOINT,
         api_version="2023-05-15"
     )
-    dataset = tfds.load('bridge_dataset:1.0.0', data_dir=args.data_dir, split='train')
+    dataset = tfds.load('bridge_dataset', data_dir=args.data_dir, split='train')
     key_object_dict = {}
 
     for example in dataset:
