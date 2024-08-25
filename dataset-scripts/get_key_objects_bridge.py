@@ -16,7 +16,10 @@ UNDEFINED_TASKS = {
     'remove the yellow brush in the silver pot': [('yellow brush', ''), ('silver pot', '')],
     'move spoon out of silver pot and placed on the table': [('spoon', ''), ('silver pot', ''), ('table', '')],
     'put lid on pot or pan': [('lid', ''), ('pot', ''), ('pan', '')],
-    'take the green arch on the right and put it on top of the red arch': [('green arch', ''), ('red arch', '')]
+    'take the green arch on the right and put it on top of the red arch': [('green arch', ''), ('red arch', '')],
+    'pick up the broccoli and place it on the left side of the bowl': [('broccoli', ''), ('bowl', '')],
+    'place the spatula on the orange coloured cloth which is far edge of the table': [('spatula', ''), ('orange coloured cloth', '')],
+    'put pickle on plate and cauliflower in pot or pan in sink': [('pickle', ''), ('plate', ''), ('cauliflower', ''), ('pot', ''), ('pan', ''), ('sink', '')],
 }
 
 task_desc = ("You will be given a sentence which are instructions for a robot to perform a certain task. "
@@ -77,6 +80,9 @@ def call_chatgpt(chatgpt_messages, task, model="gpt-4o-mini-2024-07-18"):
             pos = ''
         
         return_list.append((object_list[i], pos))
+
+    if 'table' in task:
+        return_list.append(('table', ''))
     
     return list(set(return_list))
 
@@ -126,7 +132,7 @@ if __name__ == '__main__':
         
         return_list = get_object_list(task)
         
-        if return_list == []:
+        if not return_list:
             key_object_dict[task] = {
                 'key_objects': [],
                 'positions': []
