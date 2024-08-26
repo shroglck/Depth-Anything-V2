@@ -20,6 +20,10 @@ UNDEFINED_TASKS = {
     'pick up the broccoli and place it on the left side of the bowl': [('broccoli', ''), ('bowl', '')],
     'place the spatula on the orange coloured cloth which is far edge of the table': [('spatula', ''), ('orange coloured cloth', '')],
     'put pickle on plate and cauliflower in pot or pan in sink': [('pickle', ''), ('plate', ''), ('cauliflower', ''), ('pot', ''), ('pan', ''), ('sink', '')],
+    'put the yellow knife to the bottom of the burner': [('yellow knife', ''), ('burner', '')],
+    'placing the empty tin on the right side of the burner': [('empty tin', ''), ('burner', '')],
+    'move the yellow knife to right bottom of the burner': [('yellow knife', ''), ('burner', '')],
+    'move the yellow knife to the upper right corner of the burner': [('yellow knife', ''), ('burner', '')],
 }
 
 task_desc = ("You will be given a sentence which are instructions for a robot to perform a certain task. "
@@ -121,16 +125,23 @@ if __name__ == '__main__':
     )
     dataset = tfds.load('bridge_dataset', data_dir=args.data_dir, split='train')
     key_object_dict = {}
+    undefined_tasks = []
 
     for example in dataset:
         
         task = [d['language_instruction'].numpy().decode('utf-8') for d in example['steps'].take(1)][0].lower()
 
-        if task in key_object_dict:
+        if task in key_object_dict or task in undefined_tasks:
             print(f'Task: {task} already processed')
             continue
-        
-        return_list = get_object_list(task)
+
+        try:
+            return_list = get_object_list(task)
+        except Exception as e:
+            print(f'Error in task: {task}')
+            print(e)
+            undefined_tasks.append(task)
+            continue
         
         if not return_list:
             key_object_dict[task] = {
@@ -150,3 +161,5 @@ if __name__ == '__main__':
     
     with open(os.path.join(params.data_dir, 'bridge_dataset_seg', '1.0.0', 'key_objects.json'), 'w') as f:
         json.dump(key_object_dict, f, indent=6)
+    with open(os.path.join(params.data_dir, 'bridge_dataset_seg', '1.0.0', 'undefined_tasks.json'), 'w') as f:
+        json.dump(undefined_tasks, f, indent=6)
