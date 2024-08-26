@@ -159,7 +159,7 @@ if __name__ == '__main__':
                 'positions': pos_list
             }
     
-    with open(os.path.join(params.data_dir, 'bridge_dataset_seg', '1.0.0', 'key_objects.json'), 'w') as f:
+    with open(os.path.join(args.data_dir, 'bridge_dataset_seg', '1.0.0', 'key_objects.json'), 'w') as f:
         json.dump(key_object_dict, f, indent=6)
-    with open(os.path.join(params.data_dir, 'bridge_dataset_seg', '1.0.0', 'undefined_tasks.json'), 'w') as f:
+    with open(os.path.join(args.data_dir, 'bridge_dataset_seg', '1.0.0', 'undefined_tasks.json'), 'w') as f:
         json.dump(undefined_tasks, f, indent=6)
