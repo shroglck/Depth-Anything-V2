@@ -130,7 +130,7 @@ def write_tfrecord(dataset):
     
     return num_examples
 
-def save_dataset_info(num_examples):
+def save_dataset_info():
     
     features_path = os.path.join(
         params.data_dir,
@@ -151,12 +151,14 @@ def save_dataset_info(num_examples):
         dset_info = json.load(f)
     
     dset_info['name'] = 'fractal20220817_pick_data'
-    dset_info['splits'][0]['shardLengths'][shard] = str(num_examples)
+    dset_info["splits"][0]["shardLengths"][shard] = str(num_examples)
     
-    with open(os.path.join(params.obj_data_dir, 'features.json'), 'w') as f:
-        json.dump(features, f, indent=6)
-    with open(os.path.join(params.obj_data_dir, 'dataset_info.json'), 'w') as f:
-        json.dump(dset_info, f, indent=6)
+    if not os.path.exists(os.path.join(params.pick_data_dir, 'features.json')):
+        with open(os.path.join(params.pick_data_dir, 'features.json'), 'w') as f:
+            json.dump(features, f, indent=6)
+    if not os.path.exists(os.path.join(params.pick_data_dir, 'features.json')):
+        with open(os.path.join(params.pick_data_dir, 'dataset_info.json'), 'w') as f:
+            json.dump(dset_info, f, indent=6)
 
 def params():
     
@@ -164,7 +166,7 @@ def params():
     parser.add_argument('--data-shard', type=int, default=0,
                         help='Shard of the dataset to save', choices=[i for i in range(1025)])
     parser.add_argument('--data-dir', type=str, default='/data/shresth/octo-data')
-    parser.add_argument('--obj-data-dir', type=str, default='/data/shresth/octo-data/fractal20220817_pick_data/0.1.0')
+    parser.add_argument('--pick-data-dir', type=str, default='/data/shresth/octo-data/fractal20220817_pick_data/0.1.0')
     args = parser.parse_args()
     return args
 
@@ -203,5 +205,11 @@ if __name__ == '__main__':
     print('Serializing and writing dataset to tfrecord...')
     num_examples = write_tfrecord(dataset)
     print('Updating feature and info dictionary...')
-    save_dataset_info(num_examples)
+    save_dataset_info()
+    
+    num_examples = [num_examples]
+    
+    with open(os.path.join(params.pick_data_dir, f'num_examples_{shard}.json'), 'w') as f:
+        json.dump(num_examples, f, indent=6)
+        
     print(f'Finished saving key objects for shard {shard} in {time.time() - start_time:.2f} seconds')
