@@ -113,7 +113,7 @@ def serialize_example(example):
 def write_tfrecord(dataset):
     
     tfrecord_file = os.path.join(
-        params.obj_data_dir,
+        params.pick_data_dir,
         f'fractal20220817_pick_data-train.tfrecord-{shard_str}-of-01024'
     )
     
