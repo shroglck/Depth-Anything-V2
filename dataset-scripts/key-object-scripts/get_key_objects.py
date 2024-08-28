@@ -2,7 +2,6 @@ import tensorflow as tf
 import tensorflow_datasets as tfds
 # from openai import AzureOpenAI
 import argparse
-import re
 import pickle
 import time
 import json
@@ -118,7 +117,7 @@ def add_index(example, index):
 def params():
     
     parser = argparse.ArgumentParser(description='Save dataset with depth images')
-    parser.add_argument('--data-shard', type=int, default=23,
+    parser.add_argument('--data-shard', type=int, default=1,
                         help='Shard of the dataset to save', choices=[i for i in range(1024)])
     parser.add_argument('--data-dir', type=str, default='/data/shresth/octo-data')
     parser.add_argument('--pickle_file_path', type=str, default='key_objects.pkl')
@@ -134,7 +133,7 @@ if __name__ == '__main__':
     
     shard_str_length = 5 - len(str(shard))
     shard_str = '0' * shard_str_length + str(shard)
-    dataset = tfds.load('fractal20220817_depth_data', data_dir=params.data_dir,
+    dataset = tfds.load('fractal20220817_data:0.1.0', data_dir=params.data_dir,
                         split=split)
     
     data_dict = {'idx': [idx for idx in range(len(dataset))]}

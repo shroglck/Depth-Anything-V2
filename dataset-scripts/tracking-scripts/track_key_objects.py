@@ -2,12 +2,15 @@ import tensorflow as tf
 tf.config.set_visible_devices([], 'GPU')
 import tensorflow_datasets as tfds
 import time
+import random
 from dataclasses import dataclass
 from typing import Any, List, Dict, Optional, Union, Tuple
 import torch
 import numpy as np
 from PIL import Image
+import plotly.express as px
 import matplotlib.pyplot as plt
+import plotly.graph_objects as go
 from transformers import pipeline
 from sam2.sam2_video_predictor import SAM2VideoPredictor
 from tqdm import tqdm
@@ -349,15 +352,17 @@ if __name__ == '__main__':
     # )
     
     object_detector = pipeline(model=detector_id, task="zero-shot-object-detection", device=device)
+    # processor = AutoProcessor.from_pretrained(detector_id)
+    # model = OwlViTForObjectDetection.from_pretrained(detector_id).to(device)
     predictor = SAM2VideoPredictor.from_pretrained("facebook/sam2-hiera-large").to(device)
     
     shard_str_length = 5 - len(str(shard))
     shard_str = '0' * shard_str_length + str(shard)
     
-    dataset = tfds.load('bridge_dataset', data_dir=params.data_dir,
+    dataset = tfds.load('fractal20220817_obj_data', data_dir=params.data_dir,
                         split=split)
     
-    data_dict = {'idx': [idx for idx in range(len(dataset))],
+    data_dict = {'idx': [idx for idx in range(len(dataset))], 
                  'timestep_length': [len(item['steps']) for item in dataset]}
     data_idx = tf.data.Dataset.from_tensor_slices(data_dict)
     data_idx = tf.data.Dataset.from_tensor_slices(data_dict)
@@ -380,10 +385,8 @@ if __name__ == '__main__':
     # for example in dataset:
     for i, example in tqdm(enumerate(dataset), total=len(dataset)):
         
-        task = [d['observation']['language_instruction'].numpy().decode('utf-8') for d in example['steps'].take(1)][0]
+        task = [d['observation']['natural_language_instruction'].numpy().decode('utf-8') for d in example['steps'].take(1)][0]
         example_idx = int(example['idx'].numpy())
-        
-        # TODO: Make 
         key_objects = [object.numpy().decode('utf-8') for object in example['key_objects']]
         position_list = [position.numpy().decode('utf-8') for position in example['positional_words']]
 

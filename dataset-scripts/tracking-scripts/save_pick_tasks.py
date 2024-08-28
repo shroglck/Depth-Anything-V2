@@ -114,61 +114,33 @@ def write_tfrecord(dataset):
     
     tfrecord_file = os.path.join(
         params.obj_data_dir,
-        f'fractal20220817_obj_data-train.tfrecord-{shard_str}-of-01024'
+        f'fractal20220817_pick_data-train.tfrecord-{shard_str}-of-01024'
     )
     
+    num_examples = 0
     with tf.io.TFRecordWriter(tfrecord_file) as writer:
         for example in dataset:
-            serialized_example = serialize_example(example)
-            writer.write(serialized_example)
-
-
-def add_index(dataset):
+            
+            task = [ex['observation']['natural_language_instruction'].numpy().decode('utf-8') for ex in example['steps'].take(1)][0]
+            
+            if 'pick' in task and 'drawer' not in task and 'fridge' not in task:
+                num_examples += 1
+                serialized_example = serialize_example(example)
+                writer.write(serialized_example)
     
-    def map_index(example, index):
-        example['idx'] = index['idx']
-        return example
-    
-    # Apply the function to each (example, index) pair in the dataset
-    data_dict = {'idx': [idx for idx in range(len(dataset))]}
-    data_idx = tf.data.Dataset.from_tensor_slices(data_dict)
-    dataset_with_idx = tf.data.Dataset.zip((dataset, data_idx))
-    dataset_with_idx = dataset_with_idx.map(map_index, num_parallel_calls=1)
+    return num_examples
 
-    return dataset_with_idx
-
-def add_object_list(example):
-        
-    def py_func(idx):
-        
-        idx_str = tf.strings.as_string(idx)
-        return tf.convert_to_tensor(data[idx_str.numpy().decode('utf-8')]['objects'], dtype=tf.string), \
-                tf.convert_to_tensor(data[idx_str.numpy().decode('utf-8')]['positions'], dtype=tf.string)
-    
-    # Use tf.py_function to call py_func, ensuring to specify the output types correctly
-    key_object_list_str, key_position_list_str = tf.py_function(
-        py_func,
-        [example['idx']],
-        [tf.string, tf.string]
-    )
-    
-    # No need to cast since output is already tf.string
-    example['key_objects'] = key_object_list_str
-    example['positional_words'] = key_position_list_str
-    
-    return example
-
-def save_dataset_info():
+def save_dataset_info(num_examples):
     
     features_path = os.path.join(
         params.data_dir,
-        'fractal20220817_depth_data',
+        'fractal20220817_obj_data',
         '0.1.0',
         'features.json'
     )
     dset_info_path = os.path.join(
         params.data_dir,
-        'fractal20220817_depth_data',
+        'fractal20220817_obj_data',
         '0.1.0',
         'dataset_info.json'
     )
@@ -178,16 +150,8 @@ def save_dataset_info():
     with open(dset_info_path, 'r') as f:
         dset_info = json.load(f)
     
-    dset_info['name'] = 'fractal20220817_obj_data'
-    key_objects_dict = {
-        'tensor': {
-            'dtype': 'bytes',
-            'shape': {'dimensions': [-1]}
-        },
-        'pythonClassName': 'tensorflow_datasets.core.features.tensor_feature.Tensor'
-    }
-    features['featuresDict']['features']['key_objects'] = key_objects_dict
-    features['featuresDict']['features']['positional_words'] = key_objects_dict
+    dset_info['name'] = 'fractal20220817_pick_data'
+    dset_info['splits'][0]['shardLengths'][shard] = str(num_examples)
     
     with open(os.path.join(params.obj_data_dir, 'features.json'), 'w') as f:
         json.dump(features, f, indent=6)
@@ -200,8 +164,7 @@ def params():
     parser.add_argument('--data-shard', type=int, default=0,
                         help='Shard of the dataset to save', choices=[i for i in range(1025)])
     parser.add_argument('--data-dir', type=str, default='/data/shresth/octo-data')
-    parser.add_argument('--obj-data-dir', type=str, default='/data/shresth/octo-data/fractal20220817_obj_data/0.1.0')
-    parser.add_argument('--pickle_file_path', type=str, default='key_objects.pkl')
+    parser.add_argument('--obj-data-dir', type=str, default='/data/shresth/octo-data/fractal20220817_pick_data/0.1.0')
     args = parser.parse_args()
     return args
 
@@ -217,26 +180,17 @@ if __name__ == '__main__':
     shard_str = '0' * shard_str_length + str(shard)
     
     # Load pickle file and dataset/record dataset
-    dataset = tfds.load('fractal20220817_depth_data', data_dir=params.data_dir,
+    dataset = tfds.load('fractal20220817_obj_data:0.1.0', data_dir=params.data_dir,
                         split=split)
-    with open(params.pickle_file_path, 'rb') as f:  
-        data = pickle.load(f)
-
-    # Remove pickle file
-    os.remove(params.pickle_file_path)
     
     record_dataset = tf.data.TFRecordDataset(
         os.path.join(
-            params.data_dir, 'fractal20220817_depth_data', '0.1.0',
-            f'fractal20220817_depth_data-train.tfrecord-{shard_str}-of-01024'
+            params.data_dir, 'fractal20220817_obj_data', '0.1.0',
+            f'fractal20220817_obj_data-train.tfrecord-{shard_str}-of-01024'
         )
     )
     
     start_time = time.time()
-    print(f'Saving key objects for shard {shard}...')
-    dataset = add_index(dataset)
-    dataset = dataset.map(add_object_list)
-    
     method_dict = {
         'byte': _bytes_feature,
         'bytes list': _bytes_list_feature,
@@ -247,7 +201,7 @@ if __name__ == '__main__':
     }
     feature_dict = get_record_features()
     print('Serializing and writing dataset to tfrecord...')
-    write_tfrecord(dataset)
+    num_examples = write_tfrecord(dataset)
     print('Updating feature and info dictionary...')
-    save_dataset_info()
+    save_dataset_info(num_examples)
     print(f'Finished saving key objects for shard {shard} in {time.time() - start_time:.2f} seconds')
