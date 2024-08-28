@@ -8,4 +8,4 @@ do
     end=$(( (1024 / 16) * (job_index + 1) -1 ))
     aries run ag-${JOB}-${job_index} -j 1 -g 0 lingzhan/openvla -- bash -c "git clone https://github.com/akshaygopalkr/Depth-Anything-V2.git && cd Depth-Anything-V2 && ${RUN} ${start} ${end} ${job_index}"
 done
-run -g 0 -t 3600 ag-debug lingzhan/openvla -- bash -c "git clone https://github.com/akshaygopalkr/Depth-Anything-V2.git && cd Depth-Anything-V2 && ${RUN_2}"
+# run -g 0 -t 3600 ag-debug lingzhan/openvla -- bash -c "git clone https://github.com/akshaygopalkr/Depth-Anything-V2.git && cd Depth-Anything-V2 && ${RUN_2}"
