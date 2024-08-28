@@ -123,7 +123,7 @@ def write_tfrecord(dataset):
             
             task = [ex['observation']['natural_language_instruction'].numpy().decode('utf-8') for ex in example['steps'].take(1)][0]
             
-            if 'pick' in task and 'drawer' not in task and 'fridge' not in task:
+            if 'drawer' not in task and 'fridge' not in task:
                 num_examples += 1
                 serialized_example = serialize_example(example)
                 writer.write(serialized_example)
@@ -138,12 +138,16 @@ def save_dataset_info():
         '0.1.0',
         'features.json'
     )
-    dset_info_path = os.path.join(
-        params.data_dir,
-        'fractal20220817_obj_data',
-        '0.1.0',
-        'dataset_info.json'
-    )
+    
+    if not os.path.exists(os.path.join(params.pick_data_dir, 'dataset_info.json')):
+        dset_info_path = os.path.join(
+            params.data_dir,
+            'fractal20220817_obj_data',
+            '0.1.0',
+            'dataset_info.json'
+        )
+    else:
+        dset_info_path = os.path.join(params.pick_data_dir, 'dataset_info.json')
     
     with open(features_path, 'r') as f:
         features = json.load(f)
@@ -156,9 +160,8 @@ def save_dataset_info():
     if not os.path.exists(os.path.join(params.pick_data_dir, 'features.json')):
         with open(os.path.join(params.pick_data_dir, 'features.json'), 'w') as f:
             json.dump(features, f, indent=6)
-    if not os.path.exists(os.path.join(params.pick_data_dir, 'features.json')):
-        with open(os.path.join(params.pick_data_dir, 'dataset_info.json'), 'w') as f:
-            json.dump(dset_info, f, indent=6)
+    with open(os.path.join(params.pick_data_dir, 'dataset_info.json'), 'w') as f:
+        json.dump(dset_info, f, indent=6)
 
 def params():
     
