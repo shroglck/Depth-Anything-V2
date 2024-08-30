@@ -18,7 +18,7 @@ import pickle
 import os
 import base64
 import pdb
-device = "cuda:1" if torch.cuda.is_available() else "cpu"
+device = "cuda" if torch.cuda.is_available() else "cpu"
 detector_id = "google/owlv2-large-patch14-ensemble"
 
 os.environ["TORCH_CUDNN_SDPA_ENABLED"] = "1"
