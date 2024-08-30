@@ -153,6 +153,7 @@ def add_segment_image(example):
         image = tf.py_function(read_image, [filename], tf.uint8)
         example['observation']['segment'] = image
         del example['timestep']
+        del example['observation']['depth']
         del example['idx']
         return example
     
