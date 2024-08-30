@@ -1,17 +1,6 @@
-import random
 from dataclasses import dataclass
 from typing import Any, List, Dict, Optional, Union, Tuple
-import cv2
 import numpy as np
-from PIL import Image
-import plotly.express as px
-import matplotlib.pyplot as plt
-import plotly.graph_objects as go
-from torchvision.utils import draw_segmentation_masks
-from torchvision.transforms.functional import pil_to_tensor, to_pil_image
-import requests
-import torch
-import os
 
 @dataclass
 class BoundingBox:
