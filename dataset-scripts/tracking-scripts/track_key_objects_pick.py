@@ -9,9 +9,7 @@ from torchvision.ops import nms
 import torch
 import numpy as np
 from PIL import Image
-import plotly.express as px
 import matplotlib.pyplot as plt
-import plotly.graph_objects as go
 from transformers import pipeline
 from sam2.sam2_video_predictor import SAM2VideoPredictor
 from tqdm import tqdm
@@ -114,9 +112,9 @@ def filter_detection_results(
             else:
                 results_dict[key_object] = [predictions[0]]
     
-    for object in results_dict:
-        for result in results_dict[object]:
-            show_box(result.box.xyxy, plt.gca(), f'{result.label} {result.score:.2f}')
+    # for object in results_dict:
+    #     for result in results_dict[object]:
+    #         show_box(result.box.xyxy, plt.gca(), f'{result.label} {result.score:.2f}')
         
     results_dict = {obj: sorted(results_dict[obj], key=lambda x: x.score, reverse=True) for obj in key_objects if obj in results_dict} 
     final_results = {}
@@ -243,7 +241,6 @@ if __name__ == '__main__':
     data_dict = {'idx': [idx for idx in range(len(dataset))], 
                  'timestep_length': [len(item['steps']) for item in dataset]}
     data_idx = tf.data.Dataset.from_tensor_slices(data_dict)
-    data_idx = tf.data.Dataset.from_tensor_slices(data_dict)
     dataset = tf.data.Dataset.zip((dataset, data_idx))
     dataset = dataset.map(add_timestep_index, num_parallel_calls=1)
     
@@ -282,9 +279,9 @@ if __name__ == '__main__':
 
         if task:
             
-            plt.close("all")
-            plt.imshow(image_list[0])
-            plt.axis('off')
+            # plt.close("all")
+            # plt.imshow(image_list[0])
+            # plt.axis('off')
             
             # Detect objects from initial frame
             detected_objects = detect(image=Image.open('vid_dir/0.jpg'),
@@ -311,7 +308,7 @@ if __name__ == '__main__':
                 # show_box(detected_objects[obj], plt.gca(), i)
                     
             # Save drawer detection images
-            plt.savefig(f"segment_vid_dir/{task}_{example_idx}_{shard}.png", bbox_inches='tight', pad_inches=0)
+            # plt.savefig(f"segment_vid_dir/{task}_{example_idx}_{shard}.png", bbox_inches='tight', pad_inches=0)
                         
             video_segments = {}
             for out_frame_idx, out_obj_ids, out_mask_logits in predictor.propagate_in_video(inference_state):
