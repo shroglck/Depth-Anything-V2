@@ -344,7 +344,7 @@ if __name__ == '__main__':
         # input_pattern = os.path.join('segment_dir', f'{task}_{example_idx}_%d_{shard}.png') if task else os.path.join('segment_dir', f'%d.jpg')
         # os.system(f'ffmpeg -loglevel error -y -i \"{input_pattern}\"  \"{output_video}\"')
         os.system('rm -rf segment_dir/*')
-        print(f'Saving video for {output_video}...')
+        # print(f'Saving video for {output_video}...')
         
         # Remove all the images from the vid_dir dierectory
         os.system('rm -rf vid_dir/*')
