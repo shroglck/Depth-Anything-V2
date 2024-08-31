@@ -333,7 +333,7 @@ if __name__ == '__main__':
         else:
             for img, ts in zip(image_list, range(len(image_list))):
 
-                img_name = f"{task}_{example_idx}_{shard}.png"
+                img_name = f"{task}_{example_idx}_{ts}_{shard}.png"
                 seg_img = Image.open(f"segment_dir/{ts}.jpg")
                 images_data[img_name] = seg_img
                 img_idx += 1
