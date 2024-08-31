@@ -113,8 +113,12 @@ def write_tfrecord(dataset):
     
     with tf.io.TFRecordWriter(tfrecord_file) as writer:
         for example in dataset:
-            serialized_example = serialize_example(example)
-            writer.write(serialized_example)
+            
+            task = [e['observation']['natural_language_instruction'] for e in example['steps'].take(1)][0]
+            
+            if task:
+                serialized_example = serialize_example(example)
+                writer.write(serialized_example)
 
 
 def add_timestep_index(example, index):
