@@ -17,7 +17,7 @@ if __name__ == '__main__':
     )
     with open(dset_info_path, 'r') as f:
         dset_info = json.load(f)
-    print('Starting to fix pick shards')
+    print('Starting to fix pick shards...')
     
     for shard in range(1024):
         
