@@ -19,7 +19,7 @@ if __name__ == '__main__':
     
     dset_info_path = os.path.join(
         args.data_dir,
-        'fractal20220817_pick_data',
+        'fractal20220817_seg_data',
         '0.1.0',
         'dataset_info.json'
     )
