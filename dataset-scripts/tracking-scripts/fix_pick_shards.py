@@ -1,5 +1,6 @@
 import os, json, argparse
 import tensorflow_datasets as tfds
+from tqdm import tqdm
 
 
 if __name__ == '__main__':
@@ -19,7 +20,7 @@ if __name__ == '__main__':
         dset_info = json.load(f)
     print('Starting to fix pick shards...')
     
-    for shard in range(1024):
+    for shard in tqdm(range(1024)):
         
         split = f'train[{shard}shard]'
         print(f'Getting # of examples in {split}')
