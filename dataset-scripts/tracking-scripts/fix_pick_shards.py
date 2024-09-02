@@ -1,4 +1,5 @@
 import os, json, argparse
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import tensorflow_datasets as tfds
 from tqdm import tqdm
 
