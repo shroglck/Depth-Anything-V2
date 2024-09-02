@@ -28,9 +28,10 @@ if __name__ == '__main__':
         shard_str_length = 5 - len(str(shard))
         shard_str = '0' * shard_str_length + str(shard)
         
+        print(shard_str, split)
+        
         # Load pickle file and dataset/record dataset
-        dataset = tfds.load('fractal20220817_pick_data', data_dir=args.data_dir,
-                            split=split)
+        dataset = tfds.load('fractal20220817_pick_data', data_dir=args.data_dir, split=split)
 
         num_examples = 0
         
