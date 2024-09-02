@@ -29,6 +29,7 @@ if __name__ == '__main__':
     # Load pickle file and dataset/record dataset
     dataset = tfds.load('fractal20220817_pick_data', data_dir=args.data_dir, split=split)
 
+    prev_num_examples = 0
     num_examples = 0
     
     # Get the number of examples in the shard
@@ -38,7 +39,10 @@ if __name__ == '__main__':
         
         if task:
             num_examples += 1
+        prev_num_examples += 1
     
+    print(f'Number of examples in shard {shard}: {num_examples}')
+    print(f'Number of examples in shard {shard} (prev): {prev_num_examples}')
     dset_info["splits"][0]["shardLengths"][shard] = str(num_examples)
     dset_info['name'] = 'fractal20220817_seg_data'
     with open(os.path.join(args.data_dir, 'fractal20220817_seg_data', '0.1.0', 'dataset_info.json'), 'w') as f:
