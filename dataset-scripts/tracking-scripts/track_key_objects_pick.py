@@ -277,7 +277,7 @@ if __name__ == '__main__':
         
         # Save all the image frames into the img_dir directory
         for frame in example['steps']:
-            image = Image.fromarray(frame['observation']['image'].numpy())
+            image = Image.fromarray(frame['observation']['image'].numpy()).convert('RGB')
             image_list.append(image)
             ts = frame['timestep']
             image.save(f"{vid_dir}/{ts}.jpg")
@@ -380,7 +380,7 @@ if __name__ == '__main__':
                         draw_line(point, (cX, cY), plt.gca(), relative_dist, obj_id=out_obj_id)
                 
                 plt.savefig(f"segment_dir/{img_name}", bbox_inches='tight', pad_inches=0)
-                seg_img = Image.open(f"segment_dir/{img_name}")
+                seg_img = Image.open(f"segment_dir/{img_name}").convert('RGB')
                 
                 object_locations = [[round(mask_centers[obj_id][ts][0], 2),
                                      round(mask_centers[obj_id][ts][1], 2)]
