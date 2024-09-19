@@ -1,6 +1,6 @@
-JOB="rt1-segment-key-objects"
-INSTALL="git clone https://github.com/facebookresearch/segment-anything-2.git && cd segment-anything-2 && pip install -e ."
-INSTALL2="cd checkpoints && ./download_ckpts.sh && cd ../.."
+JOB="rt1-track-key-objects"
+INSTALL="git clone https://github.com/facebookresearch/segment-anything-2.git && cd segment-anything-2 && pip install -e . && pip install sapien"
+INSTALL2="mkdir -p /ariesdv0/zhanling/oxe-data-converted/fractal20220817_tracking_data/0.1.0 && cd checkpoints && ./download_ckpts.sh && cd ../.."
 RUN="bash dataset-scripts/tracking-scripts/track_key_objects_pick.sh" 
 
 for job_index in {0..7}

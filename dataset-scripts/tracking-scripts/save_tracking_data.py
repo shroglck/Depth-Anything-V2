@@ -10,6 +10,64 @@ import pickle
 from collections import defaultdict
 import pdb
 
+seg_feature_dict = {
+        'image':
+        {
+            'dtype': 'uint8',
+            'encodingFormat': 'png',
+            'shape': {'dimensions': ['369', '369', '3']}
+        },
+        'pythonClassName': 'tensorflow_datasets.core.features.image_feature.Image'
+}
+num_objects_dict = {
+    'pythonClassName': 'tensorflow_datasets.core.features.tensor_feature.Tensor',
+    "tensor": {
+        "dtype": "int64",
+        "encoding": "none",
+        "shape": {
+            "dimensions": [
+                    "1"
+            ]
+        }
+    }
+}
+end_effector_loc_dict = {
+    'pythonClassName': 'tensorflow_datasets.core.features.tensor_feature.Tensor',
+    "tensor": {
+        "dtype": "float64",
+        "encoding": "none",
+        "shape": {
+            "dimensions": [
+                    "2"
+            ]
+        }
+    }
+}
+object_loc_dict = {
+    'pythonClassName': 'tensorflow_datasets.core.features.tensor_feature.Tensor',
+    "tensor": {
+        "dtype": "float64",
+        "encoding": "none",
+        "shape": {
+            "dimensions": [
+                    "8",
+            ]
+        }
+    }
+}
+object_distances_dict = {
+    'pythonClassName': 'tensorflow_datasets.core.features.tensor_feature.Tensor',
+    "tensor": {
+        "dtype": "float64",
+        "encoding": "none",
+        "shape": {
+            "dimensions": [
+                    "8"
+            ]
+        }
+    }
+}
+
 def _bytes_feature(value):
     """Returns a bytes_list from a string / byte."""
     if isinstance(value, type(tf.constant(0))):
@@ -63,6 +121,10 @@ def get_record_features():
             
             feature_dict[key] = data_type
     feature_dict['steps/observation/segment'] = 'bytes list'
+    feature_dict['steps/observation/num_objects'] = 'int64 list'
+    feature_dict['steps/observation/end_effector_loc'] = 'float list'
+    feature_dict['steps/observation/object_locs'] = 'float list'
+    feature_dict['steps/observation/object_distances'] = 'float list'
     return feature_dict
 
 
@@ -107,8 +169,8 @@ def serialize_example(example):
 def write_tfrecord(dataset):
     
     tfrecord_file = os.path.join(
-        params.segment_data_dir,
-        f'fractal20220817_seg_data-train.tfrecord-{shard_str}-of-01024'
+        params.tracking_data_dir,
+        f'fractal20220817_tracking_data-train.tfrecord-{shard_str}-of-01024'
     )
     
     with tf.io.TFRecordWriter(tfrecord_file) as writer:
@@ -138,9 +200,9 @@ def add_timestep_index(example, index):
     return example
 
 
-def add_segment_image(example):
+def add_tracking_data(example):
     
-    def add_segment_image_2(example):
+    def add_tracking_data_2(example):
         
         # Convert idx and timestep to string tensors
         idx_str = tf.strings.as_string(example['idx'])
@@ -150,20 +212,40 @@ def add_segment_image(example):
         task = tf.cast(example['observation']['natural_language_instruction'], tf.string)
         filename = tf.strings.join([task, "_", idx_str, "_",
                                     timestep_str, "_", str(params.data_shard), ".png"])
+        image_key = tf.strings.join(["image"])
+        num_objects_key = tf.strings.join(["num_objects"])
+        end_effector_loc_key = tf.strings.join(["end effector image location"])
+        object_loc_key = tf.strings.join(["object locations"])
+        object_distances_key = tf.strings.join(["object distances"])
         
-        def read_image(filename):
-            return tf.convert_to_tensor(np.array(data[filename.numpy().decode('utf-8')]))
         
-        image = tf.py_function(read_image, [filename], tf.uint8)
+        def read_item(filename, key_name):
+            item = tf.convert_to_tensor(np.array(data[filename.numpy().decode('utf-8')][key_name.numpy().decode('utf-8')]))
+            return item
+        
+        # Get the mask image, # of objects, end effector location,
+        # object locations, and object distances
+        image = tf.py_function(read_item, [filename, image_key], tf.uint8)
+        num_objects = tf.py_function(read_item, [filename, num_objects_key], tf.int64)
+        end_effector_loc = tf.py_function(read_item, [filename, end_effector_loc_key], tf.float64)
+        object_loc = tf.py_function(read_item, [filename, object_loc_key], tf.float64)
+        object_distances = tf.py_function(read_item, [filename, object_distances_key], tf.float64)
+        
+        # Assign new properties into observations
         example['observation']['segment'] = image
+        example['observation']['num_objects'] = num_objects
+        example['observation']['end_effector_loc'] = end_effector_loc
+        example['observation']['object_locs'] = object_loc
+        example['observation']['object_distances'] = object_distances
+        
         del example['timestep']
-        del example['observation']['depth']
+        # del example['observation']['depth']
         del example['idx']
         return example
     
     del example['key_objects']
     del example['positional_words']
-    example['steps'] = example['steps'].map(add_segment_image_2)
+    example['steps'] = example['steps'].map(add_tracking_data_2)
     
     return example
 
@@ -198,27 +280,45 @@ def save_dataset_info():
     with open(dset_info_path, 'r') as f:
         dset_info = json.load(f)
     
-    dset_info['name'] = 'fractal20220817_seg_data'
-    seg_feature_dict = {
-        'image':
-        {
-            'dtype': 'uint8',
-            'encodingFormat': 'png',
-            'shape': {'dimensions': ['369', '369', '3']}
-        },
-        'pythonClassName': 'tensorflow_datasets.core.features.image_feature.Image'
-    }
+    dset_info['name'] = 'fractal20220817_tracking_data'
+    
     features['featuresDict']['features']['steps']\
                 ['sequence']['feature']['featuresDict']\
                 ['features']['observation']\
                 ['featuresDict']['features']\
                 ['segment'] = seg_feature_dict
+    features['featuresDict']['features']['steps']\
+                ['sequence']['feature']['featuresDict']\
+                ['features']['observation']\
+                ['featuresDict']['features']\
+                ['num_objects'] = num_objects_dict
+    features['featuresDict']['features']['steps']\
+                ['sequence']['feature']['featuresDict']\
+                ['features']['observation']\
+                ['featuresDict']['features']\
+                ['end_effector_loc'] = end_effector_loc_dict
+    features['featuresDict']['features']['steps']\
+                ['sequence']['feature']['featuresDict']\
+                ['features']['observation']\
+                ['featuresDict']['features']\
+                ['end_effector_loc'] = end_effector_loc_dict
+    features['featuresDict']['features']['steps']\
+                ['sequence']['feature']['featuresDict']\
+                ['features']['observation']\
+                ['featuresDict']['features']\
+                ['object_locs'] = object_loc_dict
+    features['featuresDict']['features']['steps']\
+                ['sequence']['feature']['featuresDict']\
+                ['features']['observation']\
+                ['featuresDict']['features']\
+                ['object_distances'] = object_distances_dict
+    
     del features['featuresDict']['features']['key_objects']
     del features['featuresDict']['features']['positional_words']
     
-    with open(os.path.join(params.segment_data_dir, 'features.json'), 'w') as f:
+    with open(os.path.join(params.tracking_data_dir, 'features.json'), 'w') as f:
         json.dump(features, f, indent=6)
-    with open(os.path.join(params.segment_data_dir, 'dataset_info.json'), 'w') as f:
+    with open(os.path.join(params.tracking_data_dir, 'dataset_info.json'), 'w') as f:
         json.dump(dset_info, f, indent=6)
 
 def params():
@@ -227,7 +327,7 @@ def params():
     parser.add_argument('--data-shard', type=int, default=0,
                         help='Shard of the dataset to save', choices=[i for i in range(1025)])
     parser.add_argument('--data-dir', type=str, default='/data/shresth/octo-data')
-    parser.add_argument('--segment-data-dir', type=str, default='/data/shresth/octo-data/fractal20220817_seg_data/0.1.0')
+    parser.add_argument('--tracking-data-dir', type=str, default='/data/shresth/octo-data/fractal20220817_tracking_data/0.1.0')
     parser.add_argument('--pickle_file_path', type=str, default='segment_images.pkl')
     args = parser.parse_args()
     return args
@@ -249,7 +349,9 @@ if __name__ == '__main__':
     with open(params.pickle_file_path, 'rb') as f:
         data = pickle.load(f)
     
-    os.system(f'rm {params.pickle_file_path}')
+    print(data)
+    
+    # os.system(f'rm {params.pickle_file_path}')
     
     record_dataset = tf.data.TFRecordDataset(
         os.path.join(
@@ -258,11 +360,19 @@ if __name__ == '__main__':
         )
     )
     
-    print(f'Saving segment images for shard {shard}...')
-    print('Adding segment images to dataset...')
+    print(f'Saving tracking data for shard {shard}...')
+    print('Adding tracking data to dataset...')
     dataset = add_timestep(dataset)
     
-    dataset = dataset.map(add_segment_image)
+    dataset = dataset.map(add_tracking_data)
+    
+    # for example in dataset.take(1):
+    #     for step in example['steps']:
+    #         print(step['observation']['segment'].shape)
+    #         print(step['observation']['num_objects'])
+    #         print(step['observation']['end_effector_loc'])
+    #         print(step['observation']['object_locs'])
+    #         print(step['observation']['object_distances'])
     
     method_dict = {
         'byte': _bytes_feature,
