@@ -239,7 +239,7 @@ def add_tracking_data(example):
         example['observation']['object_distances'] = object_distances
         
         del example['timestep']
-        # del example['observation']['depth']
+        del example['observation']['depth']
         del example['idx']
         return example
     
@@ -349,9 +349,7 @@ if __name__ == '__main__':
     with open(params.pickle_file_path, 'rb') as f:
         data = pickle.load(f)
     
-    print(data)
-    
-    # os.system(f'rm {params.pickle_file_path}')
+    os.system(f'rm {params.pickle_file_path}')
     
     record_dataset = tf.data.TFRecordDataset(
         os.path.join(
