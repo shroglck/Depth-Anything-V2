@@ -113,7 +113,16 @@ def filter_detection_results(
             for result in results_dict[object]:
                 show_box(result.box.xyxy, plt.gca(), f'{result.score:.2f}')
     
-    return {obj: [result.box.xyxy for result in results_dict[obj]] for obj in results_dict}
+    objects = {obj: [result.box.xyxy for result in results_dict[obj]] for obj in results_dict}
+    
+    return_list = []
+    for i in range(2):
+        for obj in objects:
+            if i < len(objects[obj]):
+                return_list.append(objects[obj][i])
+    
+    return return_list
+        
         
 
 def detect(
@@ -319,17 +328,16 @@ if __name__ == '__main__':
             
             obj_id = 0
             for obj in detected_objects:
-                for detected_obj in detected_objects[obj]:
                     
-                    # Instatiate masks for each object
-                    _, out_obj_ids, out_mask_logits = predictor.add_new_points_or_box(
-                        inference_state=inference_state,
-                        frame_idx=0,
-                        obj_id=obj_id,
-                        box=detected_obj,
-                    )
-                    
-                    obj_id += 1
+                # Instatiate masks for each object
+                _, out_obj_ids, out_mask_logits = predictor.add_new_points_or_box(
+                    inference_state=inference_state,
+                    frame_idx=0,
+                    obj_id=obj_id,
+                    box=obj,
+                )
+                
+                obj_id += 1
                     
             if params.create_gifs:
                 # Save drawer detection images
@@ -374,10 +382,13 @@ if __name__ == '__main__':
                     relative_dist = (np.array([cX, cY]) - point) / 256
                     relative_dist = [round(relative_dist[0], 2), round(relative_dist[1], 2)]
                     mask_distances[out_obj_id].append(relative_dist)
-                    show_mask(out_mask, plt.gca(), obj_id=out_obj_id)
                     
-                    if params.create_gifs:
-                        draw_line(point, (cX, cY), plt.gca(), relative_dist, obj_id=out_obj_id)
+                    # Only want to mask four key objects
+                    if out_obj_id < 4:
+                        show_mask(out_mask, plt.gca(), obj_id=out_obj_id)
+                    
+                        if params.create_gifs:
+                            draw_line(point, (cX, cY), plt.gca(), relative_dist, obj_id=out_obj_id)
                 
                 plt.savefig(f"segment_dir/{img_name}", bbox_inches='tight', pad_inches=0)
                 seg_img = Image.open(f"segment_dir/{img_name}").convert('RGB')
