@@ -94,7 +94,7 @@ def filter_detection_results(
     key_objects: List[str],
     position_list: List[str],
 ) -> List[Dict[str, Any]]:
-    
+
     boxes = torch.tensor([result.box.xyxy for result in detection_results]).to(torch.float32)
     scores = torch.tensor([result.score for result in detection_results])
     filtered_boxes = nms(boxes, scores, iou_threshold=0.5)
@@ -283,6 +283,9 @@ if __name__ == '__main__':
         
         vid_dir = 'vid_dir' if task else 'segment_dir'
         
+        # if task != 'pick apple':
+        #     continue
+        
         
         # Save all the image frames into the img_dir directory
         for frame in example['steps']:
@@ -318,109 +321,135 @@ if __name__ == '__main__':
                                     key_objects=key_objects,
                                     position_list=position_list,
                                     threshold=0.3)
-            detected_objects = filter_detection_results(detected_objects, key_objects, position_list)
+            
+            # Filter the detected objects if there are any
+            if detected_objects:
+                detected_objects = filter_detection_results(detected_objects, key_objects, position_list)
 
-            # Initialize inference state on this video and reset SAM
-            inference_state = predictor.init_state(video_path='vid_dir')
-            predictor.reset_state(inference_state)
-            
-            ann_obj_ids = list(range(len(key_objects)))
-            
-            obj_id = 0
-            for obj in detected_objects:
-                    
-                # Instatiate masks for each object
-                _, out_obj_ids, out_mask_logits = predictor.add_new_points_or_box(
-                    inference_state=inference_state,
-                    frame_idx=0,
-                    obj_id=obj_id,
-                    box=obj,
-                )
+                # I
+                inference_state = predictor.init_state(video_path='vid_dir')
+                predictor.reset_state(inference_state)
                 
-                obj_id += 1
-                    
-            if params.create_gifs:
-                # Save drawer detection images
-                for point in robot_arm_points[:1]:
-                    show_points(np.array([point]), np.array([1]), plt.gca())
-                    
-                plt.savefig(f"segment_vid_dir/{task}_{example_idx}_{shard}.png", bbox_inches='tight', pad_inches=0)
+                ann_obj_ids = list(range(len(key_objects)))
+                
+                obj_id = 0
+                for obj in detected_objects:
                         
-            video_segments = {}
-            for out_frame_idx, out_obj_ids, out_mask_logits in predictor.propagate_in_video(inference_state):
-                video_segments[out_frame_idx] = {
-                    out_obj_id: (out_mask_logits[i] > 0.0).cpu().numpy()
-                    for i, out_obj_id in enumerate(out_obj_ids)
-                }
-            
-            mask_centers = defaultdict(list)
-            mask_distances = defaultdict(list)
-            for image, mask, ts, point in zip(image_list, video_segments, range(len(video_segments)), robot_arm_points):
-                img_name = f"{task}_{example_idx}_{ts}_{shard}.png"
-                
-                plt.close("all")
-                plt.imshow(image)
-                plt.axis('off')
-                for out_obj_id, out_mask in video_segments[ts].items():
+                    # Instatiate masks for each object
+                    _, out_obj_ids, out_mask_logits = predictor.add_new_points_or_box(
+                        inference_state=inference_state,
+                        frame_idx=0,
+                        obj_id=obj_id,
+                        box=obj,
+                    )
                     
-                    mask = out_mask[0].astype(np.uint8)
-                    
-                    moments = cv2.moments(mask)
-                    
-                    if moments["m00"] != 0:
+                    obj_id += 1
                         
-                        cX = int(moments["m10"] / moments["m00"])
-                        cY = int(moments["m01"] / moments["m00"])
-                        mask_centers[out_obj_id].append([cX/256, cY/256])
-                    else:
-                        # Otherwise use the previous mask center
-                        prev_mask_center = mask_centers[out_obj_id][-1]
-                        cX, cY = prev_mask_center
-                        cX, cY = 256 * cX, 256 * cY
-                        mask_centers[out_obj_id].append(prev_mask_center)
-
-                    relative_dist = (np.array([cX, cY]) - point) / 256
-                    relative_dist = [round(relative_dist[0], 2), round(relative_dist[1], 2)]
-                    mask_distances[out_obj_id].append(relative_dist)
+                if params.create_gifs:
+                    # Save drawer detection images
+                    for point in robot_arm_points[:1]:
+                        show_points(np.array([point]), np.array([1]), plt.gca())
+                        
+                    plt.savefig(f"segment_vid_dir/{task}_{example_idx}_{shard}.png", bbox_inches='tight', pad_inches=0)
+                            
+                video_segments = {}
+                
+                for out_frame_idx, out_obj_ids, out_mask_logits in predictor.propagate_in_video(inference_state):
+                    video_segments[out_frame_idx] = {
+                        out_obj_id: (out_mask_logits[i] > 0.0).cpu().numpy()
+                        for i, out_obj_id in enumerate(out_obj_ids)
+                    }
+                
+                mask_centers = defaultdict(list)
+                mask_distances = defaultdict(list)
+                for image, mask, ts, point in zip(image_list, video_segments, range(len(video_segments)), robot_arm_points):
+                    img_name = f"{task}_{example_idx}_{ts}_{shard}.png"
                     
-                    # Only want to mask four key objects
-                    if out_obj_id < 4:
-                        show_mask(out_mask, plt.gca(), obj_id=out_obj_id)
-                    
-                        if params.create_gifs:
-                            draw_line(point, (cX, cY), plt.gca(), relative_dist, obj_id=out_obj_id)
-                
-                plt.savefig(f"segment_dir/{img_name}", bbox_inches='tight', pad_inches=0)
-                seg_img = Image.open(f"segment_dir/{img_name}").convert('RGB')
-                
-                object_locations = [[round(mask_centers[obj_id][ts][0], 2),
-                                     round(mask_centers[obj_id][ts][1], 2)]
-                                     for obj_id in mask_centers]
-                num_objects = len(object_locations)
-                object_distances = [mask_distances[obj_id][ts] for obj_id in mask_distances]
-                
-                if len(object_locations) > 4:
-                    object_locations = object_locations[:4]
-                    object_distances = object_distances[:4]
-                elif len(object_locations) < 4:
-                    object_locations += [[-2, -2]] * (4 - len(object_locations))
-                    object_distances += [[-2, -2]] * (4 - len(object_distances))
+                    plt.close("all")
+                    plt.imshow(image)
+                    plt.axis('off')
+                    for out_obj_id, out_mask in video_segments[ts].items():
+                        
+                        mask = out_mask[0].astype(np.uint8)
+                        
+                        moments = cv2.moments(mask)
+                        
+                        if moments["m00"] != 0:
+                            
+                            cX = int(moments["m10"] / moments["m00"])
+                            cY = int(moments["m01"] / moments["m00"])
+                            mask_centers[out_obj_id].append([cX/256, cY/256])
+                        else:
+                            # Otherwise use the previous mask center
+                            prev_mask_center = mask_centers[out_obj_id][-1]
+                            cX, cY = prev_mask_center
+                            cX, cY = 256 * cX, 256 * cY
+                            mask_centers[out_obj_id].append(prev_mask_center)
 
-                normalized_point = [round(point[0]/256, 2), round(point[1]/256, 2)]
-                images_data[img_name] = {
-                    'image': seg_img,
-                    'num_objects': num_objects,
-                    'end effector image location': normalized_point,
-                    'object locations': np.array(object_locations).flatten().tolist(),
-                    'object distances': np.array(object_distances).flatten().tolist()
-                }
-                img_idx += 1
+                        relative_dist = (np.array([cX, cY]) - point) / 256
+                        relative_dist = [round(relative_dist[0], 2), round(relative_dist[1], 2)]
+                        mask_distances[out_obj_id].append(relative_dist)
+                        
+                        # Only want to mask four key objects
+                        if out_obj_id < 4:
+                            show_mask(out_mask, plt.gca(), obj_id=out_obj_id)
+                        
+                            if params.create_gifs:
+                                draw_line(point, (cX, cY), plt.gca(), relative_dist, obj_id=out_obj_id)
+                    
+                    plt.savefig(f"segment_dir/{img_name}", bbox_inches='tight', pad_inches=0)
+                    seg_img = Image.open(f"segment_dir/{img_name}").convert('RGB')
+                    
+                    object_locations = [[round(mask_centers[obj_id][ts][0], 2),
+                                        round(mask_centers[obj_id][ts][1], 2)]
+                                        for obj_id in mask_centers]
+                    num_objects = len(object_locations)
+                    object_distances = [mask_distances[obj_id][ts] for obj_id in mask_distances]
+                    
+                    if len(object_locations) > 4:
+                        object_locations = object_locations[:4]
+                        object_distances = object_distances[:4]
+                    elif len(object_locations) < 4:
+                        object_locations += [[-2, -2]] * (4 - len(object_locations))
+                        object_distances += [[-2, -2]] * (4 - len(object_distances))
+
+                    normalized_point = [round(point[0]/256, 2), round(point[1]/256, 2)]
+                    images_data[img_name] = {
+                        'image': seg_img,
+                        'num_objects': num_objects,
+                        'end effector image location': normalized_point,
+                        'object locations': np.array(object_locations).flatten().tolist(),
+                        'object distances': np.array(object_distances).flatten().tolist()
+                    }
+                    img_idx += 1
+            else:
+                for img, ts in zip(image_list, range(len(image_list))):
+                    img_name = f"{task}_{example_idx}_{ts}_{shard}.png"
+                    seg_img = Image.open(f"vid_dir/{ts}.jpg")
+                    seg_img.save(f"segment_dir/{img_name}")
+                    images_data[img_name] = {
+                        'image': seg_img,
+                        'num_objects': 0,
+                        'end effector image location': [-2.0]*8,
+                        'object locations': [-2.0]*8,
+                        'object distances': [-2.0]*8
+                    }
+                    images_data[img_name] = seg_img
+                    img_idx += 1
+            
         else:
             for img, ts in zip(image_list, range(len(image_list))):
 
                 img_name = f"{task}_{example_idx}_{ts}_{shard}.png"
                 seg_img = Image.open(f"segment_dir/{ts}.jpg")
                 images_data[img_name] = seg_img
+                images_data[img_name] = {
+                    'image': seg_img,
+                    'num_objects': 0,
+                    'end effector image location': [-2.0]*8,
+                    'object locations': [-2.0]*8,
+                    'object distances': [-2.0]*8
+                }
                 img_idx += 1
 
         if params.create_gifs:

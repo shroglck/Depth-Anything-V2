@@ -177,8 +177,9 @@ def write_tfrecord(dataset):
         for example in dataset:
             
             task = [e['observation']['natural_language_instruction'] for e in example['steps'].take(1)][0]
+            num_objects = [e['observation']['num_objects'] for e in example['steps'].take(1)][0].numpy().item()
             
-            if task:
+            if task and num_objects > 0:
                 serialized_example = serialize_example(example)
                 writer.write(serialized_example)
 
@@ -220,6 +221,7 @@ def add_tracking_data(example):
         
         
         def read_item(filename, key_name):
+            
             item = tf.convert_to_tensor(np.array(data[filename.numpy().decode('utf-8')][key_name.numpy().decode('utf-8')]))
             return item
         
