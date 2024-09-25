@@ -330,7 +330,7 @@ def params():
                         help='Shard of the dataset to save', choices=[i for i in range(1025)])
     parser.add_argument('--data-dir', type=str, default='/data/shresth/octo-data')
     parser.add_argument('--tracking-data-dir', type=str, default='/data/shresth/octo-data/fractal20220817_tracking_data/0.1.0')
-    parser.add_argument('--pickle_file_path', type=str, default='segment_images.pkl')
+    parser.add_argument('--pickle_file_path', type=str, default='/ariesdv0/zhanling/oxe-data-converted/fractal20220817_tracking_data/segment_images.pkl')
     args = parser.parse_args()
     return args
 
