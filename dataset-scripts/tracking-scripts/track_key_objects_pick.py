@@ -232,7 +232,7 @@ if __name__ == '__main__':
         shard_str = '0' * shard_str_length + str(shard)
         
         if not os.path.exists(os.path.join(
-            params.tracking_data_dir,
+            '/ariesdv0/zhanling/oxe-data-converted/fractal20220817_tracking_data',
             f'fractal20220817_tracking_data-train.tfrecord-{shard_str}-of-01024'
         )):
             print(f'Shard {shard} not found.')
