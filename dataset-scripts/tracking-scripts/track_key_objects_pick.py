@@ -228,7 +228,7 @@ if __name__ == '__main__':
     split = f'train[{shard}shard]'
     
     for i in range(1024):
-        shard = params.data_shard
+        shard = i
         split = f'train[{shard}shard]'
         shard_str_length = 5 - len(str(shard))
         shard_str = '0' * shard_str_length + str(shard)
