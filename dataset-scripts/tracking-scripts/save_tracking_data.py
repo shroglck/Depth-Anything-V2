@@ -160,7 +160,6 @@ def serialize_example(example):
                         steps_dict['/'.join(['steps', steps_key, key_2])].extend(flattened_tensor)
     
     for key in steps_dict:
-        print(key)
         feature[key] = method_dict[feature_dict[key]](steps_dict[key])
     
     example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
