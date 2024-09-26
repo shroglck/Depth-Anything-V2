@@ -248,7 +248,7 @@ if __name__ == '__main__':
     dataset = tfds.load('fractal20220817_pick_data', data_dir=params.data_dir,
                         split=split)
     
-    data_dict = {'idx': [idx for idx in range(len(dataset))], 
+    data_dict = {'idx': [idx for idx in range(len(dataset))],
                  'timestep_length': [len(item['steps']) for item in dataset]}
     data_idx = tf.data.Dataset.from_tensor_slices(data_dict)
     dataset = tf.data.Dataset.zip((dataset, data_idx))
