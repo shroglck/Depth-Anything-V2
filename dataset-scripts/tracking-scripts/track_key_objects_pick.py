@@ -215,7 +215,7 @@ def params():
     parser.add_argument('--data-shard', type=int, default=0,
                         help='Shard of the dataset to save', choices=[i for i in range(1024)])
     parser.add_argument('--data-dir', type=str, default='/data/shresth/octo-data')
-    parser.add_argument('--pickle_file_path', type=str, default='/ariesdv0/zhanling/oxe-data-converted/fractal20220817_tracking_data/segment_images.pkl')
+    parser.add_argument('--pickle_file_path', type=str, default='segment_images.pkl')
     parser.add_argument('--create-gifs', action='store_true')
     args = parser.parse_args()
     return args
@@ -282,10 +282,6 @@ if __name__ == '__main__':
         image_list = []
         
         vid_dir = 'vid_dir' if task else 'segment_dir'
-        
-        # if task != 'pick apple':
-        #     continue
-        
         
         # Save all the image frames into the img_dir directory
         for frame in example['steps']:
@@ -434,7 +430,6 @@ if __name__ == '__main__':
                         'object locations': [-2.0]*8,
                         'object distances': [-2.0]*8
                     }
-                    images_data[img_name] = seg_img
                     img_idx += 1
             
         else:
@@ -442,7 +437,6 @@ if __name__ == '__main__':
 
                 img_name = f"{task}_{example_idx}_{ts}_{shard}.png"
                 seg_img = Image.open(f"segment_dir/{ts}.jpg")
-                images_data[img_name] = seg_img
                 images_data[img_name] = {
                     'image': seg_img,
                     'num_objects': 0,

@@ -241,7 +241,7 @@ def add_tracking_data(example):
         example['observation']['object_distances'] = object_distances
         
         del example['timestep']
-        del example['observation']['depth']
+        # del example['observation']['depth']
         del example['idx']
         return example
     
@@ -330,7 +330,7 @@ def params():
                         help='Shard of the dataset to save', choices=[i for i in range(1025)])
     parser.add_argument('--data-dir', type=str, default='/data/shresth/octo-data')
     parser.add_argument('--tracking-data-dir', type=str, default='/data/shresth/octo-data/fractal20220817_tracking_data/0.1.0')
-    parser.add_argument('--pickle_file_path', type=str, default='/ariesdv0/zhanling/oxe-data-converted/fractal20220817_tracking_data/segment_images.pkl')
+    parser.add_argument('--pickle_file_path', type=str, default='segment_images.pkl')
     args = parser.parse_args()
     return args
 
@@ -338,6 +338,18 @@ def params():
 if __name__ == '__main__':
     
     params = params()
+    
+    for i in range(1024):
+        shard = params.data_shard
+        split = f'train[{shard}shard]'
+        shard_str_length = 5 - len(str(shard))
+        shard_str = '0' * shard_str_length + str(shard)
+        
+        if not os.path.exists(os.path.join(
+            params.tracking_data_dir,
+            f'fractal20220817_tracking_data-train.tfrecord-{shard_str}-of-01024'
+        )):
+            print(f'Shard {shard} not found.')
     
     shard = params.data_shard
     split = f'train[{shard}shard]'
@@ -365,15 +377,6 @@ if __name__ == '__main__':
     dataset = add_timestep(dataset)
     
     dataset = dataset.map(add_tracking_data)
-    
-    # for example in dataset.take(1):
-    #     for step in example['steps']:
-    #         print(step['observation']['segment'].shape)
-    #         print(step['observation']['num_objects'])
-    #         print(step['observation']['end_effector_loc'])
-    #         print(step['observation']['object_locs'])
-    #         print(step['observation']['object_distances'])
-    
     method_dict = {
         'byte': _bytes_feature,
         'bytes list': _bytes_list_feature,
