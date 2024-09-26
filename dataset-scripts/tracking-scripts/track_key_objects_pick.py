@@ -224,8 +224,6 @@ def params():
 if __name__ == '__main__':
     
     params = params()
-    shard = params.data_shard
-    split = f'train[{shard}shard]'
     
     for i in range(1024):
         shard = i
@@ -242,6 +240,8 @@ if __name__ == '__main__':
     object_detector = pipeline(model=detector_id, task="zero-shot-object-detection", device=device)
     predictor = SAM2VideoPredictor.from_pretrained("facebook/sam2-hiera-large").to(device)
     
+    shard = params.data_shard
+    split = f'train[{shard}shard]'
     shard_str_length = 5 - len(str(shard))
     shard_str = '0' * shard_str_length + str(shard)
     
