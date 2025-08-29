@@ -359,7 +359,7 @@ if __name__ == '__main__':
     shard_str_length = 5 - len(str(shard))
     shard_str = '0' * shard_str_length + str(shard)
     
-    dataset = tfds.load('fractal20220817_obj_data', data_dir=params.data_dir,
+    dataset = tfds.load('fractal20220817_pick_data', data_dir=params.data_dir,
                         split=split)
     
     data_dict = {'idx': [idx for idx in range(len(dataset))], 
