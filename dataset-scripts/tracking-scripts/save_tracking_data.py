@@ -266,13 +266,13 @@ def save_dataset_info():
     
     features_path = os.path.join(
         params.data_dir,
-        'fractal20220817_obj_data',
+        'fractal20220817_pick_data',
         '0.1.0',
         'features.json'
     )
     dset_info_path = os.path.join(
         params.data_dir,
-        'fractal20220817_obj_data',
+        'fractal20220817_pick_data',
         '0.1.0',
         'dataset_info.json'
     )
@@ -346,7 +346,7 @@ if __name__ == '__main__':
     shard_str = '0' * shard_str_length + str(shard)
     
     # Load pickle file and dataset/record dataset
-    dataset = tfds.load('fractal20220817_obj_data', data_dir=params.data_dir,
+    dataset = tfds.load('fractal20220817_pick_data', data_dir=params.data_dir,
                         split=split)
     with open(params.pickle_file_path, 'rb') as f:
         data = pickle.load(f)
@@ -355,8 +355,8 @@ if __name__ == '__main__':
     
     record_dataset = tf.data.TFRecordDataset(
         os.path.join(
-            params.data_dir, 'fractal20220817_obj_data', '0.1.0',
-            f'fractal20220817_obj_data-train.tfrecord-{shard_str}-of-01024'
+            params.data_dir, 'fractal20220817_pick_data', '0.1.0',
+            f'fractal20220817_pick_data-train.tfrecord-{shard_str}-of-01024'
         )
     )
     
