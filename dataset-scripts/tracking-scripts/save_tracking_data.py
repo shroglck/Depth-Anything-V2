@@ -241,7 +241,7 @@ def add_tracking_data(example):
         example['observation']['object_distances'] = object_distances
         
         del example['timestep']
-        del example['observation']['depth']
+        #del example['observation']['depth']
         del example['idx']
         return example
     
